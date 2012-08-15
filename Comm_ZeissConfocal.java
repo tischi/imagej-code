@@ -1,3 +1,10 @@
+/***
+ * @author Christian Tischer
+ * using a (modified) class for Windows Registry communication, written by Oleg Ryaboy
+ */
+
+
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
