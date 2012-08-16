@@ -26,21 +26,10 @@ public class Comm_ZeissConfocal implements PlugIn {
 		
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
-
-		//String path = getTrimmedRegistryValue("filepath");
-		//IJ.log(""+plugin_name+": loading image from "+path);
- 		//ImagePlus imp = new ImagePlus(path);
- 		//if (imp==null) {
- 		//	IJ.log(""+plugin_name+": could not load image.");
- 		//}
- 		// todo: catch errors
-		//imp.show();
- 		
-		
-		//static String message="my message";
+	
 		String[] microscopes = {"LSM780"};
-		String[] actions = {"read status", "submit command", "wait&obtain image"};
-		String[] commands = {"do nothing", "bleach object", "image object"};
+		String[] actions = {"read status", "submit command", "obtain image"};
+		String[] commands = {"do nothing", "image selected particle"};
 		//static String action	
         	GenericDialog gd = new GenericDialog("Microscope Communication");
         	gd.addChoice("microscope: ", microscopes, microscopes[0]);
@@ -55,19 +44,29 @@ public class Comm_ZeissConfocal implements PlugIn {
         	String command = (String)gd.getNextChoice();
         	int offsetx = (int)gd.getNextNumber();
         	int offsety = (int)gd.getNextNumber();
-
-
-		if (microscope=="LSM780") {
-			winreg_location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";
-		}
 		
-		if (action=="wait&obtain image" ) {
-			writeToMacro("waiting", offsetx, offsety);
+		IJ.log(""+plugin_name+": user values retrieved");
+		IJ.log(""+plugin_name+": action = "+action);
+	
+
+
+		if (microscope.equals("LSM780")) {
+			winreg_location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";
+		} 
+
+		
+		// action choice
+		if (action.equals("obtain image")) {
 			obtainImage();
 		}
-     		
-		writeToMacro(command, offsetx, offsety);
-		readFromMacro();
+		else if (action.equals("submit command")) {
+			writeToMacro(command, offsetx, offsety);
+		}
+     		else if (action.equals("read status")) {
+			readFromMacro();
+     		}
+
+		IJ.log(""+plugin_name+": done");
 		
     	}
 
@@ -92,8 +91,6 @@ public class Comm_ZeissConfocal implements PlugIn {
  		ImagePlus imp = new ImagePlus(path);
 		imp.show();
  		
-				
-		WindowsRegistry.writeRegistry(winreg_location, "Code", "do nothing");
 	}
 
 
