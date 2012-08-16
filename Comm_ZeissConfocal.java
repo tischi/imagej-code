@@ -4,43 +4,65 @@
  */
 
 
+import ij.*;
+import ij.plugin.*;
+import ij.gui.GenericDialog;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import ij.IJ;
 import java.lang.*;
 
-import ij.plugin.*;
-import ij.gui.GenericDialog;
 
 public class Comm_ZeissConfocal implements PlugIn {
 	
-	String location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";
-	String winReg_separator = "REG_SZ"	;
+	String plugin_name = "Communicator";
+	String microscope = "LSM780";
+	String winreg_location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";; 
+	String winreg_separator = "REG_SZ";
 	
+
 	public void run(String arg) {
 		
 		IJ.log(" ");
-		IJ.log("Comm_ZeissConfocal: started");
+		IJ.log(""+plugin_name+": started");
+
+		String path = getTrimmedRegistryValue("filepath");
+		IJ.log(""+plugin_name+": loading image from "+path);
+ 		ImagePlus imp = new ImagePlus(path);
+ 		if (imp==null) {
+ 			IJ.log(""+plugin_name+": could not load image.");
+ 		}
+ 		// todo: catch errors
+		imp.show();
+ 		
 		
 		//static String message="my message";
-		String[] actions = {"read registry", "write registry", "obtaining image"};
+		String[] microscopes = {"LSM780"};
+		String[] actions = {"read status", "submit command", "wait&obtain image"};
 		String[] commands = {"do nothing", "bleach object", "image object"};
 		//static String action	
-        	GenericDialog gd = new GenericDialog("Communicate with Zeiss Confocal");
+        	GenericDialog gd = new GenericDialog("Microscope Communication");
+        	gd.addChoice("microscope: ", microscopes, microscopes[0]);
         	gd.addChoice("action: ", actions, actions[1]);
       	        gd.addChoice("command: ", commands, commands[0]);
-      	        gd.addNumericField("offsetx: ", 0, 0);
-      	        gd.addNumericField("offsety: ", 0, 0);
+      	        gd.addNumericField("object x: ", 0, 0);
+      	        gd.addNumericField("object y: ", 0, 0);
   	        gd.showDialog();
         	if(gd.wasCanceled()) return;
+        	microscope = (String)gd.getNextChoice();
         	String action = (String)gd.getNextChoice();
         	String command = (String)gd.getNextChoice();
         	int offsetx = (int)gd.getNextNumber();
         	int offsety = (int)gd.getNextNumber();
 
-		if (action=="wait for and load image" ) {
+
+		if (microscope=="LSM780") {
+			winreg_location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";
+		}
+		
+		if (action=="wait&obtain image" ) {
+			writeToMacro("waiting", offsetx, offsety);
 			obtainImage();
 		}
      		
@@ -51,7 +73,7 @@ public class Comm_ZeissConfocal implements PlugIn {
 
 	public void obtainImage() {
 		
-		IJ.log("Comm_ZeissConfocal: obtaining image...");
+		IJ.log(""+plugin_name+": obtaining image...");
 			
 		String code = "do nothing";
 		
@@ -64,28 +86,38 @@ public class Comm_ZeissConfocal implements PlugIn {
     			   Thread.currentThread().interrupt();
 			}
  		}
+ 		IJ.log(""+plugin_name+": microscope responded.");
+ 		String path = getTrimmedRegistryValue("filepath");
+		IJ.log(""+plugin_name+": loading image from "+path);
+ 		ImagePlus imp = new ImagePlus(path);
+		imp.show();
+ 		
 				
-		WindowsRegistry.writeRegistry(location, "Code", "do nothing");
+		WindowsRegistry.writeRegistry(winreg_location, "Code", "do nothing");
 	}
 
 
 	public void writeToMacro(String code, int offsetx, int offsety) {
-		WindowsRegistry.writeRegistry(location, "Code", code);
-		WindowsRegistry.writeRegistry(location, "offsetx", ""+offsetx);
-		WindowsRegistry.writeRegistry(location, "offsety", ""+offsety);
-		IJ.log("Comm_ZeissConfocal: wrote to microscope");
+		WindowsRegistry.writeRegistry(winreg_location, "Code", code);
+		WindowsRegistry.writeRegistry(winreg_location, "offsetx", ""+offsetx);
+		WindowsRegistry.writeRegistry(winreg_location, "offsety", ""+offsety);
+		IJ.log(""+plugin_name+": wrote to microscope");
 	}
 
 	public void readFromMacro() {
 		
 		String code = getTrimmedRegistryValue("Code");
-		IJ.log("Comm_ZeissConfocal: read Code = "+ code);
+		IJ.log(""+plugin_name+": read Code = "+ code);
 						
 	}
 
+
+	// todo: move to Winreg class; parameter: winreg_separator
 	public String getTrimmedRegistryValue(String key) {
-		String temp1 = WindowsRegistry.readRegistry(location, key);
-		String [] temp2 = temp1.split(winReg_separator); // extract only the value
+		//IJ.log("reading from "+winreg_location);
+		String temp1 = WindowsRegistry.readRegistry(winreg_location, key);
+		//IJ.log("return="+temp1);
+		String [] temp2 = temp1.split(winreg_separator); // extract only the value
 		String value = temp2[1].trim(); // get rid of whitespaces
 		return value;
 	}
