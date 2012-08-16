@@ -27,14 +27,14 @@ public class Comm_ZeissConfocal implements PlugIn {
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
 
-		String path = getTrimmedRegistryValue("filepath");
-		IJ.log(""+plugin_name+": loading image from "+path);
- 		ImagePlus imp = new ImagePlus(path);
- 		if (imp==null) {
- 			IJ.log(""+plugin_name+": could not load image.");
- 		}
+		//String path = getTrimmedRegistryValue("filepath");
+		//IJ.log(""+plugin_name+": loading image from "+path);
+ 		//ImagePlus imp = new ImagePlus(path);
+ 		//if (imp==null) {
+ 		//	IJ.log(""+plugin_name+": could not load image.");
+ 		//}
  		// todo: catch errors
-		imp.show();
+		//imp.show();
  		
 		
 		//static String message="my message";
@@ -46,8 +46,8 @@ public class Comm_ZeissConfocal implements PlugIn {
         	gd.addChoice("microscope: ", microscopes, microscopes[0]);
         	gd.addChoice("action: ", actions, actions[1]);
       	        gd.addChoice("command: ", commands, commands[0]);
-      	        gd.addNumericField("object x: ", 0, 0);
-      	        gd.addNumericField("object y: ", 0, 0);
+      	        gd.addNumericField("object_x: ", 0, 0);
+      	        gd.addNumericField("object_y: ", 0, 0);
   	        gd.showDialog();
         	if(gd.wasCanceled()) return;
         	microscope = (String)gd.getNextChoice();
