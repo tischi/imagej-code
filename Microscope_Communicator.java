@@ -23,7 +23,6 @@ public class Microscope_Communicator implements PlugIn {
 	String winreg_location = "HKCU\\SOFTWARE\\VB and VBA Program Settings\\OnlineImageAnalysis\\macro";; 
 	String winreg_separator = "REG_SZ";
 	
-
 	public void run(String arg) {
 		
 		IJ.log(" ");
@@ -37,16 +36,20 @@ public class Microscope_Communicator implements PlugIn {
         	gd.addChoice("microscope: ", microscopes, microscopes[0]);
         	gd.addChoice("action: ", actions, actions[1]);
       	        gd.addChoice("command: ", commands, commands[0]);
-      	        gd.addNumericField("x: ", 0, 0);
-      	        gd.addNumericField("y: ", 0, 0);
+      	        //gd.addNumericField("x: ", 0, 0);
+      	        //gd.addNumericField("y: ", 0, 0);
   	        gd.showDialog();
         	if(gd.wasCanceled()) return;
         	microscope = (String)gd.getNextChoice();
         	String action = (String)gd.getNextChoice();
         	String command = (String)gd.getNextChoice();
-        	int offsetx = (int)gd.getNextNumber();
-        	int offsety = (int)gd.getNextNumber();
-
+        	//int offsetx = (int)gd.getNextNumber();
+        	//int offsety = (int)gd.getNextNumber();
+        	// todo: maybe get rid of the offset variables
+		int offsetx = 0;
+		int offsety = 0;
+		
+		
 		
 		IJ.log(""+plugin_name+": user values retrieved");
 		IJ.log(""+plugin_name+": action = "+action);
@@ -81,7 +84,8 @@ public class Microscope_Communicator implements PlugIn {
 		
 		while ( ! code.equals("1")) {
  			code = getTrimmedRegistryValue("Code");
- 			IJ.log("Comm_ZeissConfocal: current code value = "+code);
+ 			// todo: nicer update of waiting => update command in same line
+ 			//IJ.log("Comm_ZeissConfocal: current code value = "+code);
  			try {
  			   Thread.sleep(1000);
 			} catch(InterruptedException ex) {
