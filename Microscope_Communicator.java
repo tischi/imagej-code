@@ -48,8 +48,7 @@ public class Microscope_Communicator implements PlugIn {
         	// todo: maybe get rid of the offset variables
 		int offsetx = 0;
 		int offsety = 0;
-		
-		
+				
 		
 		IJ.log(""+plugin_name+": user values retrieved");
 		IJ.log(""+plugin_name+": action = "+action);
@@ -78,7 +77,7 @@ public class Microscope_Communicator implements PlugIn {
 
 	public void obtainImage() {
 		
-		IJ.log(""+plugin_name+": obtaining image...");
+		IJ.log(""+plugin_name+": obtaining image...waiting for micorscope...");
 			
 		String code = "do nothing";
 		
@@ -102,9 +101,11 @@ public class Microscope_Communicator implements PlugIn {
 
 
 	public void writeToMacro(String command, int offsetx, int offsety) {
+		int x=0;
+		int y=0;
 		
 		if (command.equals("image selected particle")) {
-			IJ.log(""+plugin_name+": ");
+			IJ.log(""+plugin_name+": measuring location of of selected particle...");
 			// measure currently selected particle
 			// todo: make sure the center of mass coordinates are selected
 			RoiManager manager = RoiManager.getInstance();
@@ -112,15 +113,26 @@ public class Microscope_Communicator implements PlugIn {
 			// get x,y coordinates
 			ResultsTable rt = ResultsTable.getResultsTable();
 			int lastRow = rt.getCounter()-1;
-			int x = (int)rt.getValueAsDouble(rt.getColumnIndex("XM"),lastRow);
-			int y = (int)rt.getValueAsDouble(rt.getColumnIndex("YM"),lastRow);
-			IJ.log(""+plugin_name+": X, Y ="+x+", "+y);
+			x = (int)rt.getValueAsDouble(rt.getColumnIndex("XM"),lastRow);
+			y = (int)rt.getValueAsDouble(rt.getColumnIndex("YM"),lastRow);
+			IJ.log(""+plugin_name+": XM, YM ="+x+", "+y);
 			rt.deleteRow(lastRow);
 		}
-	
-		WindowsRegistry.writeRegistry(winreg_location, "Code", command);
-		WindowsRegistry.writeRegistry(winreg_location, "offsetx", ""+offsetx);
-		WindowsRegistry.writeRegistry(winreg_location, "offsety", ""+offsety);
+
+		ImagePlus imp = IJ.getImage();
+		int w = (int)imp.getWidth();
+		int h = (int)imp.getHeight();
+		int dx = (int)-(x-w/2);
+		int dy = (int)(y-h/2);
+
+		//dx =-500;
+		//dy =-500;
+		
+		IJ.log(""+plugin_name+": dx, dy ="+dx+", "+dy);
+		
+		WindowsRegistry.writeRegistry(winreg_location, "Code", "5");  
+		WindowsRegistry.writeRegistry(winreg_location, "dx", ""+dx);
+		WindowsRegistry.writeRegistry(winreg_location, "dy", ""+dy);
 		IJ.log(""+plugin_name+": wrote to microscope");
 	}
 

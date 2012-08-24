@@ -17,7 +17,7 @@ public class Close_all_forced implements PlugIn {
 	String plugin_name = "Close all forced";
 
 	// todo: make a GUI for also clearing the ROI manager and whether you want to force closing
- 	public void run(String arg) {
+	public void run(String arg) {
 		
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
