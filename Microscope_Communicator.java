@@ -5,14 +5,21 @@
 
 
 import ij.*;
+import ij.io.*;
 import ij.plugin.*;
 import ij.gui.GenericDialog;
 import ij.measure.*;
 import ij.plugin.frame.RoiManager;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+//import java.io.IOException;
+//import java.io.InputStream;
+//import java.io.StringWriter;
+//import java.io.File;
+
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+
 import java.lang.*;
 
 
@@ -29,7 +36,7 @@ public class Microscope_Communicator implements PlugIn {
 		IJ.log(""+plugin_name+": started");
 	
 		String[] microscopes = {"LSM780"};
-		String[] actions = {"read status", "submit command", "obtain image"};
+		String[] actions = {"read status", "submit command", "obtain image", "save current image"};
 		String[] commands = {"do nothing", "image selected particle", "image at x, y"};
 		//static String action	
         	GenericDialog gd = new GenericDialog("Microscope Communication");
@@ -68,7 +75,9 @@ public class Microscope_Communicator implements PlugIn {
 		}
      		else if (action.equals("read status")) {
 			readFromMacro();
-     			
+     		}
+     		else if (action.equals("save current image")) {
+			saveCurrentImage();     			
      		}
 
 		IJ.log(""+plugin_name+": done");
@@ -77,7 +86,7 @@ public class Microscope_Communicator implements PlugIn {
 
 	public void obtainImage() {
 		
-		IJ.log(""+plugin_name+": obtaining image...waiting for micorscope...");
+		IJ.log(""+plugin_name+": obtaining image...waiting for microscope...");
 			
 		String code = "do nothing";
 		
@@ -93,12 +102,12 @@ public class Microscope_Communicator implements PlugIn {
  		}
  		IJ.log(""+plugin_name+": microscope responded.");
  		String path = getTrimmedRegistryValue("filepath");
+ 		
 		IJ.log(""+plugin_name+": loading image from "+path);
  		ImagePlus imp = new ImagePlus(path);
 		imp.show();
  		
 	}
-
 
 	public void writeToMacro(String command, int offsetx, int offsety) {
 		int x=0;
@@ -153,6 +162,35 @@ public class Microscope_Communicator implements PlugIn {
 		String value = temp2[1].trim(); // get rid of whitespaces
 		return value;
 	}
+
+	public void saveCurrentImage() {
+		IJ.log(""+plugin_name+": saving current image...");
+		String path = getTrimmedRegistryValue("filepath");
+		File f = new File(path);
+    		IJ.log("Path-->" + f.getParent());
+    		//IJ.log("file--->" + f.getName());       
+    		//int idx = f.getName().lastIndexOf('.');
+    		//IJ.log("extension--->" + ((idx > 0) ? f.getName().substring(idx) : "") );
+		
+		ImagePlus imp = IJ.getImage();
+		//IJ.run(saveAs("Jpeg", "C:\\temp\\ERES-tmp.jpg");
+		IJ.saveAs(imp, "Jpeg", f.getParent()+"\\"+f.getName()+"_"+imp.getTitle()+".jpeg"); 
+		//path.split
+		
+	}
+
+	public static String join(Collection s, String delimiter) {
+    		StringBuffer buffer = new StringBuffer();
+    		Iterator iter = s.iterator();
+    		while (iter.hasNext()) {
+        		buffer.append(iter.next());
+		        if (iter.hasNext()) {
+        	buffer.append(delimiter);
+        }
+        
+    }
+    return buffer.toString();
+}
 
 
 }
