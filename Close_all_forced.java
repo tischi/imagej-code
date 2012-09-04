@@ -27,7 +27,7 @@ public class Close_all_forced implements PlugIn {
 			return;
 		
 		for (int i=0; i<list.length; i++) {
-			IJ.log(""+i);
+			//IJ.log(""+i);
 			ImagePlus img = WindowManager.getImage(list[i]);
 			if (img!=null) {
 				img.changes = false;

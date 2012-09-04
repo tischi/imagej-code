@@ -4,15 +4,16 @@ do {
 run("Close all forced");
 
 // obtain image (NEW)
-run("Microscope Communicator", "microscope=LSM780 action=[obtain image] command=[do nothing] object_x=0 object_y=0");
+run("Microscope Communicator", "microscope=LSM510 action=[obtain image] command=[do nothing] object_x=0 object_y=0");
 run("Properties...", "unit=pix pixel_width=1 pixel_height=1 voxel_depth=1 origin=0,0");
 
 // find nuclei
 rename("raw"); selectWindow("raw");
 run("Duplicate...", "title=thresholded");
+run("Gaussian Blur...", "sigma=3 slice");
 wait(500);
 run("Auto Threshold", "method=Otsu white"); run("Convert to Mask");
-run("Analyze Particles...", "size=2000-Infinity pixel circularity=0.00-1.00 show=Nothing exclude clear add");
+run("Analyze Particles...", "size=2000-Infinity pix el circularity=0.00-1.00 show=Nothing exclude clear add");
 
 // prepare the ERES thresholding
 selectWindow("raw"); run("Next Slice [>]"); run("Duplicate...", "title=ERES"); 
@@ -28,36 +29,41 @@ roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
 // todo: what happens if no good cell is found?
 
 // save image of best cell for documentation
-selectWindow("ERES"); wait(500); run("Duplicate...", "title=ERES-docu");
+selectWindow("ERES"); run("Select None"); wait(500); run("Duplicate...", "title=ERES-docu");
 run("Select best particle", "filter=threshold measurement=Mean threshold_min=10 threshold_max=15");
-setForegroundColor(255, 255, 255); run("Line Width...", "line=4"); run("Draw");
+if (selectionType() > -1) {
+	setForegroundColor(255, 255, 255); run("Line Width...", "line=4"); run("Draw");
+	
+	// find ERES in the best cell
+	selectWindow("thresholded_cell"); 
+	run("Select best particle", "filter=threshold measurement=Mean threshold_min=10 threshold_max=15");
+	run("Auto Threshold", "method=Otsu white"); run("Convert to Mask");
+	run("Select best particle", "filter=threshold measurement=Mean threshold_min=10 threshold_max=15");
+	run("Analyze Particles...", "size=10-Infinity pixel circularity=0.00-1.00 show=Nothing exclude clear add");
+	
+	// measure ERES
+	selectWindow("ERES Laplacian");
+	run("Set Measurements...", "min center redirect=None decimal=2");
+	// add nn computation
+	roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
+	run("Measure nearest neighbour distance");
+	
+	// find best ERES
+	selectWindow("ERES-docu"); wait(500); 
+	run("Select best particle", "filter=max measurement=Max threshold_min=0 threshold_max=0");
+	if (selectionType() > -1) {	
+		// mark best ERES and save image for documentation
+		setForegroundColor(255, 255, 255); run("Line Width...", "line=1"); run("Draw");
+		run("Microscope Communicator", "microscope=LSM510 action=[save current image] command=[do nothing]"); 
+		
+		//run("Select best particle", "filter=max measurement=nn_distance threshold_min=0 threshold_max=0");
+		// NEW PLUGIN: tell microscope to image the identified particle
+		run("Microscope Communicator", "microscope=LSM510 action=[submit command] command=[image selected particle] object_x=0 object_y=0");
+	}		
+} 
 
-// find ERES in the best cell
-selectWindow("thresholded_cell"); 
-run("Select best particle", "filter=threshold measurement=Mean threshold_min=10 threshold_max=15");
-run("Auto Threshold", "method=Otsu white"); run("Convert to Mask");
-run("Select best particle", "filter=threshold measurement=Mean threshold_min=10 threshold_max=15");
-run("Analyze Particles...", "size=10-Infinity pixel circularity=0.00-1.00 show=Nothing exclude clear add");
-
-// measure ERES
-selectWindow("ERES Laplacian");
-run("Set Measurements...", "min center redirect=None decimal=2");
-// add nn computation
-roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
-run("Measure nearest neighbour distance");
-
-// find best ERES
-selectWindow("ERES-docu"); wait(500); 
-run("Select best particle", "filter=max measurement=Max threshold_min=0 threshold_max=0");
-
-// mark best ERES and save image for documentation
-setForegroundColor(255, 255, 255); run("Line Width...", "line=1"); run("Draw");
-run("Microscope Communicator", "microscope=LSM780 action=[save current image] command=[do nothing]"); 
-
-//run("Select best particle", "filter=max measurement=nn_distance threshold_min=0 threshold_max=0");
-
-
-// NEW PLUGIN: tell microscope to image the identified particle
-run("Microscope Communicator", "microscope=LSM780 action=[submit command] command=[image selected particle] object_x=0 object_y=0");
-
+if (selectionType() == -1) {	
+	run("Microscope Communicator", "microscope=LSM510 action=[submit command] command=[do nothing] object_x=0 object_y=0");
+	}
+	
 } while (1);

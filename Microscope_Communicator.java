@@ -35,7 +35,7 @@ public class Microscope_Communicator implements PlugIn {
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
 	
-		String[] microscopes = {"LSM780"};
+		String[] microscopes = {"LSM780","LSM510"};
 		String[] actions = {"read status", "submit command", "obtain image", "save current image"};
 		String[] commands = {"do nothing", "image selected particle", "image at x, y"};
 		//static String action	
@@ -126,23 +126,34 @@ public class Microscope_Communicator implements PlugIn {
 			y = (int)rt.getValueAsDouble(rt.getColumnIndex("YM"),lastRow);
 			IJ.log(""+plugin_name+": XM, YM ="+x+", "+y);
 			rt.deleteRow(lastRow);
+			ImagePlus imp = IJ.getImage();
+			int w = (int)imp.getWidth();
+			int h = (int)imp.getHeight();
+			int dx = (int)-(x-w/2);
+			int dy = (int)(y-h/2);
+			
+			if(microscope.equals("LSM510")) {
+				IJ.log(""+plugin_name+": LSM510 => inverting dy");
+				dy = -dy;
+			}
+	
+			//dx =-500;
+			//dy =-500;
+			
+			IJ.log(""+plugin_name+": dx, dy ="+dx+", "+dy);
+			
+			WindowsRegistry.writeRegistry(winreg_location, "offsetx", ""+dx);
+			WindowsRegistry.writeRegistry(winreg_location, "offsety", ""+dy);
+			Thread.sleep(500);
+			WindowsRegistry.writeRegistry(winreg_location, "Code", "5");
+	  
+			IJ.log(""+plugin_name+": wrote to microscope");
 		}
-
-		ImagePlus imp = IJ.getImage();
-		int w = (int)imp.getWidth();
-		int h = (int)imp.getHeight();
-		int dx = (int)-(x-w/2);
-		int dy = (int)(y-h/2);
-
-		//dx =-500;
-		//dy =-500;
 		
-		IJ.log(""+plugin_name+": dx, dy ="+dx+", "+dy);
-		
-		WindowsRegistry.writeRegistry(winreg_location, "Code", "5");  
-		WindowsRegistry.writeRegistry(winreg_location, "dx", ""+dx);
-		WindowsRegistry.writeRegistry(winreg_location, "dy", ""+dy);
-		IJ.log(""+plugin_name+": wrote to microscope");
+		if (command.equals("do nothing")) {
+			IJ.log(""+plugin_name+": no good object found");
+			WindowsRegistry.writeRegistry(winreg_location, "Code", "2");
+		}
 	}
 
 	public void readFromMacro() {
