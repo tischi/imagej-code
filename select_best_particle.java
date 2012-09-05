@@ -8,7 +8,6 @@ import ij.plugin.*;
 import ij.measure.*;
 import ij.plugin.frame.RoiManager;
 
-
 import ij.gui.GenericDialog;
 
 import java.io.IOException;
@@ -112,7 +111,7 @@ public class Select_best_particle implements PlugIn {
 		
 	}
 
-	public String[] get_cols_of_ResultsTable() {
+	private String[] get_cols_of_ResultsTable() {
 		IJ.log(""+plugin_name+": getting colnames of results table...");
 		ResultsTable rt = ResultsTable.getResultsTable();
 		String temp = (String)rt.getColumnHeadings().trim();

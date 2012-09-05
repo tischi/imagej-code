@@ -55,7 +55,7 @@ public class Measure_nearest_neighbour_distance implements PlugIn {
     	}
 
 	public void measure_nn_dist() {
-		float minDist,dx2,dy2;
+		double minDist,dx2,dy2;
 	
 			
 		ResultsTable rt = ResultsTable.getResultsTable();	
@@ -69,10 +69,10 @@ public class Measure_nearest_neighbour_distance implements PlugIn {
 				if (i!=j) {
 					//IJ.log("i"+i+" j"+j);
 			
-					dx2 = (float)Math.pow(x[i]-x[j],2);
-					dy2 = (float)Math.pow(y[i]-y[j],2);
-					if (dx2+dy2 < minDist) {
-						minDist = dx2+dy2;
+					dx2 = Math.pow(x[i]-x[j],2);
+					dy2 = Math.pow(y[i]-y[j],2);
+					if (Math.sqrt(dx2+dy2) < minDist) {
+						minDist = Math.sqrt(dx2+dy2);
 					}		
 				}
 			}

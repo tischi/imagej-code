@@ -25,7 +25,7 @@ public class Filter_particles implements PlugIn {
 	public void run(String arg) {
 		
 		IJ.log(" ");
-		IJ.log(""+plugin_name+": started");
+		IJ.log(""+plugin_name+": started.");
  		
 		// todo: what happens if there is no results table?
 		String[] colnames = get_colnames_of_ResultsTable();
@@ -67,9 +67,9 @@ public class Filter_particles implements PlugIn {
 			for (i = 0; i < n; i++) {
 				v = rt.getValue(colname,i);	
 				if ( (v > th_max) || (v < th_min) ) {  // particle is no good
-					manager.select(i); // select all bad particles
+					//IJ.log(""+i+" "+v);
+					manager.select(i); 
 					manager.runCommand("Delete");
-					IJ.log(""+i+" "+v);
 					rt.deleteRow(i);
 					rt.updateResults();
 					rt.show("Results");
