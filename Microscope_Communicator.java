@@ -20,8 +20,6 @@ import java.io.*;
 import java.lang.*;
 import java.util.*;
 
-import java.lang.*;
-
 
 public class Microscope_Communicator implements PlugIn {
 	
@@ -35,7 +33,7 @@ public class Microscope_Communicator implements PlugIn {
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
 	
-		String[] microscopes = {"LSM780","LSM510"};
+		String[] microscopes = {"LSM780","aaLSM510"};
 		String[] actions = {"read status", "submit command", "obtain image", "save current image"};
 		String[] commands = {"do nothing", "image selected particle", "image at x, y"};
 		//static String action	
@@ -144,8 +142,12 @@ public class Microscope_Communicator implements PlugIn {
 			
 			WindowsRegistry.writeRegistry(winreg_location, "offsetx", ""+dx);
 			WindowsRegistry.writeRegistry(winreg_location, "offsety", ""+dy);
-			Thread.sleep(500);
-			WindowsRegistry.writeRegistry(winreg_location, "Code", "5");
+			try {
+ 			   Thread.sleep(500);
+			} catch(InterruptedException ex) {
+    			   Thread.currentThread().interrupt();
+			}
+ 			WindowsRegistry.writeRegistry(winreg_location, "Code", "5");
 	  
 			IJ.log(""+plugin_name+": wrote to microscope");
 		}

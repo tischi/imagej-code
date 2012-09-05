@@ -64,7 +64,7 @@ public class Select_best_particle implements PlugIn {
 		//todo: this returns the wrong value
 		vBest = v[0];
 		if (method.equals("max")) {
-			for (i = 1; i < v.length; i++) {
+			for (i = 0; i < v.length; i++) {
 				if (v[i] > vBest) {
 					vBest = v[i];
 					iBest = i;
@@ -72,7 +72,7 @@ public class Select_best_particle implements PlugIn {
 			}
 		} 
 		else if (method.equals("min")) {
-			for (i = 1; i < v.length; i++) {
+			for (i = 0; i < v.length; i++) {
 				if (v[i] < vBest) {
 					vBest = v[i];
 					iBest = i;
@@ -84,7 +84,7 @@ public class Select_best_particle implements PlugIn {
 			iBest = generator.nextInt(v.length);
 		}
 		else if (method.equals("threshold")) {
-			for (i = 1; i < v.length; i++) {
+			for (i = 0; i < v.length; i++) {
 				if ( (v[i] < th_max) && (v[i] > th_min) ) {
 					vBest = v[i];
 					iBest = i;
