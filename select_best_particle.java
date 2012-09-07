@@ -52,11 +52,14 @@ public class Select_best_particle implements PlugIn {
 
 	public float[] getBestParticle(String colname, String method, float th_min, float th_max) {
 		float[] ivxy = new float[4];
-		int iBest = 0;
+		int iBest = -1;
 		int i;
+		int iCol;
 		float vBest;
 			
 		ResultsTable rt = ResultsTable.getResultsTable();	
+		iCol = rt.getColumnIndex(colname); iCol = rt.getColumnIndex(colname); if(iCol == -1) return ivxy;
+		
 		float[] v = (float[])rt.getColumn(rt.getColumnIndex(colname));
 		
 
@@ -91,6 +94,8 @@ public class Select_best_particle implements PlugIn {
 				}
 			}	
 		}
+		
+		if(iBest==-1) return ivxy;
 		
 
 		float[] x = rt.getColumn(rt.getColumnIndex("XM"));

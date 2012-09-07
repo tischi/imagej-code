@@ -100,6 +100,8 @@ public class Microscope_Communicator implements PlugIn {
  		}
  		IJ.log(""+plugin_name+": microscope responded.");
  		String path = getTrimmedRegistryValue("filepath");
+		writeToMacro("wait", 0, 0);
+
  		
 		IJ.log(""+plugin_name+": loading image from "+path);
  		ImagePlus imp = new ImagePlus(path);

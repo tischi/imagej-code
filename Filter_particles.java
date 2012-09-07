@@ -53,12 +53,17 @@ public class Filter_particles implements PlugIn {
 
 	public void filterParticles(String colname, String method, float th_min, float th_max) {
 		int i;
+		int iCol;
 		double v;
+
 			
 		ResultsTable rt = ResultsTable.getResultsTable();
+		
+		iCol = rt.getColumnIndex(colname); if(iCol == -1) return;
+		
 		float[] values = (float[])rt.getColumn(rt.getColumnIndex(colname));
 		int n = values.length;
-		
+
 		RoiManager manager = RoiManager.getInstance();
 		manager.runCommand("Deselect");
 		
