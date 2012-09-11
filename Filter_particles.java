@@ -56,33 +56,38 @@ public class Filter_particles implements PlugIn {
 		int iCol;
 		double v;
 
-			
+		
 		ResultsTable rt = ResultsTable.getResultsTable();
 		
 		iCol = rt.getColumnIndex(colname); if(iCol == -1) return;
 		
-		float[] values = (float[])rt.getColumn(rt.getColumnIndex(colname));
-		int n = values.length;
+		//float[] values = (float[])rt.getColumn(rt.getColumnIndex(colname));
+		//int n = values.length;
+
+		int n = rt.getCounter();
 
 		RoiManager manager = RoiManager.getInstance();
 		manager.runCommand("Deselect");
 		
 		// todo: throw an error if the number of ROIs and Results is not the same
 		if (method.equals("threshold")) {
-			for (i = 0; i < n; i++) {
+			for (i=n-1; i>=0; i--) {
 				v = rt.getValue(colname,i);	
 				if ( (v > th_max) || (v < th_min) ) {  // particle is no good
 					//IJ.log(""+i+" "+v);
 					manager.select(i); 
 					manager.runCommand("Delete");
 					rt.deleteRow(i);
-					rt.updateResults();
-					rt.show("Results");
-					n=n-1;
-					i=i-1;			
+					//rt.updateResults();
+					//rt.show("Results");
+					//n=n-1;
+					//i=i-1;			
 				}
 			}	
+			rt.updateResults();
+			rt.show("Results");		
 		}
+		
 		
 		
 	}

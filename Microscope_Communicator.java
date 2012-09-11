@@ -93,7 +93,7 @@ public class Microscope_Communicator implements PlugIn {
  			// todo: nicer update of waiting => update command in same line
  			//IJ.log("Comm_ZeissConfocal: current code value = "+code);
  			try {
- 			   Thread.sleep(1000);
+ 			   Thread.sleep(100);
 			} catch(InterruptedException ex) {
     			   Thread.currentThread().interrupt();
 			}
@@ -130,7 +130,7 @@ public class Microscope_Communicator implements PlugIn {
 			int w = (int)imp.getWidth();
 			int h = (int)imp.getHeight();
 			int dx = (int)-(x-w/2);
-			int dy = (int)(y-h/2);
+			int dy = (int)-(y-h/2);
 			
 			if(microscope.equals("LSM510")) {
 				IJ.log(""+plugin_name+": LSM510 => inverting dy");
@@ -144,6 +144,8 @@ public class Microscope_Communicator implements PlugIn {
 			
 			WindowsRegistry.writeRegistry(winreg_location, "offsetx", ""+dx);
 			WindowsRegistry.writeRegistry(winreg_location, "offsety", ""+dy);
+			WindowsRegistry.writeRegistry(winreg_location, "orientation", ""+0);
+			
 			try {
  			   Thread.sleep(500);
 			} catch(InterruptedException ex) {

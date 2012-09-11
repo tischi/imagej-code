@@ -62,20 +62,23 @@ public class Select_best_particle implements PlugIn {
 		
 		float[] v = (float[])rt.getColumn(rt.getColumnIndex(colname));
 		
-
+		IJ.log(""+plugin_name+": finding best particle...");
+		
 		//todo: this returns the wrong value
 		vBest = v[0];
 		if (method.equals("max")) {
 			for (i = 0; i < v.length; i++) {
-				if (v[i] > vBest) {
+				//IJ.log(""+plugin_name+":"+v[i]+" "+vBest);
+				if (v[i] >= vBest) {
 					vBest = v[i];
 					iBest = i;
+					//IJ.log(""+plugin_name+":"+vBest);
 				}
 			}
 		} 
 		else if (method.equals("min")) {
 			for (i = 0; i < v.length; i++) {
-				if (v[i] < vBest) {
+				if (v[i] <= vBest) {
 					vBest = v[i];
 					iBest = i;
 				}
