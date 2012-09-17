@@ -33,7 +33,8 @@ public class Microscope_Communicator implements PlugIn {
 		IJ.log(" ");
 		IJ.log(""+plugin_name+": started");
 	
-		String[] microscopes = {"LSM780","aaLSM510"};
+		
+		String[] microscopes = {"File system","LSM780","aaLSM510"};
 		String[] actions = {"read status", "submit command", "obtain image", "save current image"};
 		String[] commands = {"do nothing", "image selected particle", "image at x, y"};
 		//static String action	
@@ -56,6 +57,7 @@ public class Microscope_Communicator implements PlugIn {
 				
 		
 		IJ.log(""+plugin_name+": user values retrieved");
+		IJ.log(""+plugin_name+": microscope = "+microscope);
 		IJ.log(""+plugin_name+": action = "+action);
 	
 
@@ -66,7 +68,7 @@ public class Microscope_Communicator implements PlugIn {
 
 		// action choice
 		if (action.equals("obtain image")) {
-			obtainImage();
+			obtainImage(microscope);
 		}
 		else if (action.equals("submit command")) {
 			writeToMacro(command, offsetx, offsety);
@@ -82,26 +84,44 @@ public class Microscope_Communicator implements PlugIn {
 		
     	}
 
-	public void obtainImage() {
+	public void obtainImage(String microscope) {
 		
-		IJ.log(""+plugin_name+": obtaining image...waiting for microscope...");
+		String path;
+		
+		if (microscope.equals("File system")) {
 			
-		String code = "do nothing";
+			OpenDialog od = new OpenDialog("Choose a .mrc file", null);  
+        		String dir = od.getDirectory();  
+        		if (null == dir) {
+        			path=""; // dialog was canceled  
+        		} else {
+        			dir = dir.replace('\\', '/'); // Windows safe  
+        			if (!dir.endsWith("/")) dir += "/";  
+        			path = dir + od.getFileName();  
+        		}
+    
+			
+		} else {
 		
-		while ( ! code.equals("1")) {
- 			code = getTrimmedRegistryValue("Code");
- 			// todo: nicer update of waiting => update command in same line
- 			//IJ.log("Comm_ZeissConfocal: current code value = "+code);
- 			try {
- 			   Thread.sleep(100);
-			} catch(InterruptedException ex) {
-    			   Thread.currentThread().interrupt();
-			}
- 		}
- 		IJ.log(""+plugin_name+": microscope responded.");
- 		String path = getTrimmedRegistryValue("filepath");
-		writeToMacro("wait", 0, 0);
-
+			IJ.log(""+plugin_name+": obtaining image...waiting for microscope...");
+			
+			String code = "do nothing";
+		
+			while ( ! code.equals("1")) {
+	 			code = getTrimmedRegistryValue("Code");
+ 				// todo: nicer update of waiting => update command in same line
+ 				//IJ.log("Comm_ZeissConfocal: current code value = "+code);
+ 				try {
+ 				   Thread.sleep(100);
+				} catch(InterruptedException ex) {
+    				   Thread.currentThread().interrupt();
+				}
+ 			}
+	 		IJ.log(""+plugin_name+": microscope responded.");
+	 		path = getTrimmedRegistryValue("filepath");
+			writeToMacro("wait", 0, 0);
+		
+		}	
  		
 		IJ.log(""+plugin_name+": loading image from "+path);
  		ImagePlus imp = new ImagePlus(path);

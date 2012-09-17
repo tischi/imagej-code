@@ -1,5 +1,5 @@
 // LSM780 1024x1024 zoom1 63x
-microscope = "LSM780"
+microscope = "File system" //"LSM780"
 nuc_size_min = "8000"
 cell_intens_min = "5"
 cell_intens_max = "20"
@@ -12,13 +12,17 @@ do {
 run("Close all forced");
 
 // obtain image (NEW)
-run("Microscope Communicator", "microscope="+microscope+" action=[obtain image] command=[do nothing] object_x=0 object_y=0");
+//run("Microscope Communicator", "microscope=["+microscope+"] action=[obtain image] command=[do nothing]");
+run("Microscope Communicator", "microscope=["+microscope+"] action=[obtain image] command=[do nothing] choose=W:\\To_Tischi_from_Julia\\test_centrosome_detection_Juli\\DATA\\gooood\\bsp2\\A__L1_R33.lsm");
+
 run("Properties...", "unit=pix pixel_width=1 pixel_height=1 voxel_depth=1 origin=0,0");
+run("Z Project...", "projection=[Max Intensity]");
 rename("raw"); 
 
 // extract images
-selectWindow("raw"); run("Duplicate...", "title=nuclei");
-selectWindow("raw"); run("Next Slice [>]"); run("Duplicate...", "title=eres");
+selectWindow("raw"); run("Duplicate...", "title=centro");
+selectWindow("raw"); run("Next Slice [>]"); 
+run("Duplicate...", "title=nuclei");
 
 // find nuclei 
 selectWindow("nuclei"); run("Duplicate...", "title=nuclei_bw");
@@ -26,8 +30,21 @@ run("Gaussian Blur...", "sigma=3 slice"); wait(500);
 run("Auto Threshold", "method=Otsu white"); run("Convert to Mask"); wait(500);
 run("Analyze Particles...", "size="+nuc_size_min+"-Infinity pixel circularity=0.00-1.00 show=Nothing exclude clear add");
 
+// enhance centrosomes
+selectWindow("centro"); run("Select None"); wait(500); 
+run("FeatureJ Laplacian", "compute smoothing=2"); run("Invert"); 
+rename("centro_laplacian"); 
+
+// threshold centrosomes
+setThreshold(-30, 1000); run("Convert to Mask");
+//Sets the lower and upper threshold levels. The values are uncalibrated except for 16-bit images (e.g., unsigned 16-bit images). There is an optional third argument that can be "red", "black & white", "over/under" or "no color". See also: setAutoThreshold, getThreshold, resetThreshold.
+ff
+// threshold centrosomes
+
+
+
 // find cells 
-run("Enlarge all ROIs", "number=70");
+//run("Enlarge all ROIs", "number=10");
 
 // measure cells
 selectWindow("eres"); 

@@ -68,7 +68,9 @@ public class Filter_particles implements PlugIn {
 
 		RoiManager manager = RoiManager.getInstance();
 		manager.runCommand("Deselect");
-		
+		manager.runCommand("Show None");
+		ImagePlus imp = IJ.getImage();
+		imp.hide();
 		// todo: throw an error if the number of ROIs and Results is not the same
 		if (method.equals("threshold")) {
 			for (i=n-1; i>=0; i--) {
@@ -87,7 +89,7 @@ public class Filter_particles implements PlugIn {
 			rt.updateResults();
 			rt.show("Results");		
 		}
-		
+		imp.show();
 		
 		
 	}
