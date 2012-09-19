@@ -4,18 +4,32 @@ nuc_size_min = "8000"
 cell_intens_min = "5"
 cell_intens_max = "20"
 eres_dist_min =  "15"
+eres_dist_max =  "80"
+eres_intens_min = "50"
+eres_intens_max = "240"
 eres_size_min = "5"
 eres_size_max = "20"
+eres_nb_min = "5"
+eres_nb_max = "20"
 // LSM510
 
 
-do {
+//do {
+
+dir = getDirectory("Choose a Directory ");
+list = getFileList(dir);
+for (i = 0; i < list.length; i++) {
+	//print(list[i]);
+
+if (endsWith(list[i], ".lsm")) {	
 
 run("Close all forced");
 
-// obtain image (NEW)
-//run("Microscope Communicator", "microscope=[File system] action=[obtain image] command=[do nothing] choose=/Users/tischi/Downloads/ctrl_z10_n172_r40_02/ctrl_L1_R1.lsm_eres_docu.jpg");
-run("Microscope Communicator", "microscope=[File system] action=[obtain image] command=[do nothing] choose=/Users/tischi/Downloads/ctrl_z10_n172_r40_02/ctrl_L1_R1.lsm");
+open(dir+list[i]);
+//run("Microscope Communicator", "microscope=[File system] action=[obtain image] command=[do nothing] choose=/Users/tischi/Downloads/ctrl_z10_n172_r40_02/ctrl_L1_R1.lsm");
+
+path = getInfo("image.directory")+File.separator+getInfo("image.filename");
+
 
 //run("Microscope Communicator", "microscope="+microscope+" action=[obtain image] command=[do nothing]");
 run("Properties...", "unit=pix pixel_width=1 pixel_height=1 voxel_depth=1 origin=0,0");
@@ -24,6 +38,7 @@ rename("raw");
 // extract images
 selectWindow("raw"); run("Duplicate...", "title=nuclei");
 selectWindow("raw"); run("Next Slice [>]"); run("Duplicate...", "title=eres");
+
 
 // enhance ERES
 selectWindow("eres");
@@ -43,126 +58,60 @@ run("Convert to Mask");
 run("Analyze Particles...", "size="+eres_size_min+"-"+eres_size_max+" pixel circularity=0.00-1.00 show=Masks exclude clear add");
 rename("ERES_Masks");
 
-// measure ERES
-// measure ERES neighborhood
-selectWindow("ERES_Masks"); run("Dilate"); run("Invert"); run("Divide...", "value=255");
+// determine max ERES neighborhood intensity
+selectWindow("ERES_Masks"); run("Dilate"); run("Dilate"); run("Invert"); run("Divide...", "value=255");
 imageCalculator("Multiply create", "gs","ERES_Masks");
 run("Gray Morphology", "radius=10 type=circle operator=[fast dilate]");
 rename("ERES_Neighborhood");
 
-ff
-
-//
-
-
-
-selectWindow("eres"); run("Duplicate...", "title=eres_removed");
-selectWindow("eres_removed");
-//roiManager("Show All");
-//setForegroundColor(0, 0, 0);
-//run("Fill", "slice");
-
-ff
-
-
-ff
-ff
-
-
-
-// find nuclei 
-selectWindow("nuclei"); run("Duplicate...", "title=nuclei_bw");
-run("Gaussian Blur...", "sigma=3 slice"); wait(500);
-run("Auto Threshold", "method=Otsu white"); run("Convert to Mask"); wait(500);
-run("Analyze Particles...", "size="+nuc_size_min+"-Infinity pixel circularity=0.00-1.00 show=Nothing exclude clear add");
-
-// find cells 
-run("Enlarge all ROIs", "number=70");
-
-// measure cells
-selectWindow("eres"); 
-run("Set Measurements...", "area mean center redirect=None decimal=2");
+//  eres intensity and center 
+selectWindow("gs");
+run("Set Measurements...", "min center redirect=None decimal=2");
 roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
+run("Filter particles", "filter=threshold measurement=Max threshold_min="+eres_intens_min+" threshold_max="+eres_intens_max);
 
-// filter cells
-run("Filter particles", "filter=threshold measurement=Mean threshold_min="+cell_intens_min+" threshold_max="+cell_intens_max);
+// minimal neighbor distance
+run("Measure nearest neighbour distance");
+run("Filter particles", "filter=threshold measurement=nn_distance threshold_min="+eres_dist_min+" threshold_max="+eres_dist_max);
 
-// find best cell 
+// eres max neighborhood intensity
+selectWindow("ERES_Neighborhood");
+roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
+run("Filter particles", "filter=threshold measurement=Max threshold_min="+eres_nb_min+" threshold_max="+eres_nb_max);
+
+
+// prepare documentation
+selectWindow("raw"); run("Previous Slice [<]"); 
+run("Make Composite");
+run("Blue");
+
+// select valid eres that is closest to the image center 
 run("Measure image center distance");
-run("Select None"); run("Select best particle", "filter=min measurement=imCenter_distance threshold_min="+cell_intens_min+" threshold_max="+cell_intens_max);
+run("Select None"); run("Select best particle", "filter=min measurement=imCenter_distance threshold_min=0 threshold_max=0");
 
-if (selectionType() > -1) {
-
-	// document the best cell
-	selectWindow("eres"); run("Select None"); wait(500); run("Duplicate...", "title=eres_docu");
-	run("Select best particle", "filter=min measurement=imCenter_distance threshold_min="+cell_intens_min+" threshold_max="+cell_intens_max);
-	setForegroundColor(255, 255, 255); run("Line Width...", "line=2"); run("Draw");
-	
-	// enhance ERES
-	selectWindow("eres"); run("Select None"); wait(500); 
-	run("FeatureJ Laplacian", "compute smoothing=1"); run("Invert"); rename("eres_laplacian"); 
-	
-	// threshold ERES in the best cell
-	run("Duplicate...", "title=eres_bw");
-	run("Select best particle", "filter=min measurement=imCenter_distance threshold_min="+cell_intens_min+" threshold_max="+cell_intens_max);
-	run("8-bit"); run("Auto Local Threshold", "method=Niblack radius=15 parameter_1=2.0 parameter_2=0 white");
-	run("Convert to Mask");
-	//run("Auto Threshold", "method=Otsu white"); run("Convert to Mask");
-	//run("Auto Threshold", "method=Otsu white"); run("Convert to Mask");
-	
-	// find particles in the best cell
-	run("Select best particle", "filter=min measurement=imCenter_distance threshold_min="+cell_intens_min+" threshold_max="+cell_intens_max);
-	run("Analyze Particles...", "size=5-100 pixel circularity=0.00-1.00 show=Nothing exclude clear add");
-	
-	// measure ERES
-	selectWindow("eres"); run("Select None"); roiManager("Show All"); wait(500);
-	run("Set Measurements...", "min area center redirect=None decimal=2");
-	roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
-	run("Measure nearest neighbour distance");
-	
-	// filter ERES
-	// isolated but not alone
-	run("Filter particles", "filter=threshold measurement=nn_distance threshold_min="+eres_dist_min+" threshold_max=100");
-
-	// not too big and not too small
-	run("Filter particles", "filter=threshold measurement=area threshold_min=6 threshold_max=15");
-
-	// not saturated and not too dimm
-	run("Filter particles", "filter=threshold measurement=Max threshold_min=50 threshold_max=253");
-
-	
-	// measure whether ERES are in the nucleus
-	selectWindow("nuclei_bw"); run("Select None"); roiManager("Show All"); wait(500);
-	run("Set Measurements...", "min area center redirect=None decimal=2");
-	roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
-	// not in the nucleus 
-	run("Filter particles", "filter=threshold measurement=Max threshold_min=0 threshold_max=100");
-	
-	// measure local contrast
-	selectWindow("eres_laplacian");
-	roiManager("Deselect"); run("Clear Results"); roiManager("Measure");
-	
-	// find best ERES
-	run("Select best particle", "filter=max measurement=Max threshold_min=0 threshold_max=0");
-		
-	if (selectionType() > -1) {	
-		// mark best ERES and save image together with the original for documentation
-		selectWindow("eres_docu"); wait(500); 
-		run("Select best particle", "filter=max measurement=Max threshold_min=0 threshold_max=0");
-		run("Enlarge...", "enlarge=5");
-		setForegroundColor(255, 255, 255); run("Line Width...", "line=1"); run("Draw");
-		run("Microscope Communicator", "microscope="+microscope+" action=[save current image] command=[do nothing]"); 
-		
-		//run("Select best particle", "filter=max measurement=nn_distance threshold_min=0 threshold_max=0");
-		// NEW PLUGIN: tell microscope to image the identified particle
-		run("Microscope Communicator", "microscope="+microscope+" action=[submit command] command=[image selected particle] object_x=0 object_y=0");
-	}		
+if (selectionType() > -1) {	
+	// mark best ERES in the image
+	run("Enlarge...", "enlarge=5");
+	setForegroundColor(255, 255, 255); run("Line Width...", "line=1"); run("Draw");
 } 
 
-if (selectionType() == -1) {	
-	run("Microscope Communicator", "microscope="+microscope+" action=[submit command] command=[do nothing] object_x=0 object_y=0");
-	}
-	
+// save docu also if there is no best particle
+path = getInfo("image.directory")+File.separator+getInfo("image.filename");
+//path = getInfo("image.directory")+getInfo("image.filename");
+print(path);
+
+saveAs("PNG",path+"_docu2.png");
+
+ff
+
+if (selectionType() > -1) {
+	//run("Microscope Communicator", "microscope="+microscope+" action=[submit command] command=[image selected particle] object_x=0 object_y=0");
+} else {
+	//run("Microscope Communicator", "microscope="+microscope+" action=[submit command] command=[do nothing] object_x=0 object_y=0");
+}
+
 wait(500);
+}
+}
 	
-} while (1);
+//} while (1);
